@@ -9,8 +9,8 @@ class ConnectionPool:
     def send_welcome_message(self, writer):
         message = dedent(f"""
         ===
-        (Welcome {writer.nickname}!
-        There are {len(self.connection_pool) -1} user(s)
+        Welcome {writer.nickname}!
+        There are {len(self.connection_pool) - 1} user(s)
         here beside you
 
         Help:
@@ -22,11 +22,11 @@ class ConnectionPool:
 
         writer.write(f"{message}\n".encode())
 
-    def broadcat(self, writer, message):
+    def broadcast(self, writer, message):
         for user in self.connection_pool:
             if user != writer:
                 # no need to broadcast to the user sending the message
-                user.writer(f"{message}\n".encode())
+                user.write(f"{message}\n".encode())
 
     def broadcast_user_join(self, writer):
         self.broadcast(writer, f"{writer.nickname} just joined")
@@ -57,7 +57,7 @@ class ConnectionPool:
 
 
 async def handle_connection(reader, writer):
-    writer.write(">Chose your nickname:".encode())
+    writer.write("> Chose your nickname: ".encode())
 
     response = await reader.readuntil(b"\n")
     writer.nickname = response.decode().strip()
@@ -65,9 +65,34 @@ async def handle_connection(reader, writer):
     connection_pool.add_new_user_to_pool(writer)
     connection_pool.send_welcome_message(writer)
 
-    # close connection and clean up
+    # broadcasts the arrival of a new user
+    connection_pool.broadcast_user_join(writer)
+
+    while True:
+        try:
+            data = await reader.readuntil(b"\n")
+        except asyncio.exceptions.IncompleteReadError:
+            connection_pool.broadcast_user_quit(writer)
+            break
+
+        message = data.decode().strip()
+        if message == "/quit":
+            connection_pool.broadcast_user_quit(writer)
+            break
+        elif message == "/list":
+            connection_pool.list_users(writer)
+        else:
+            connection_pool.broadcast_new_message(writer, message)
+
+            await writer.drain()
+
+            if writer.is_closing():
+                break
+
+    # outside the message loop and user has quit. Close connection and clean up
     writer.close()
     await writer.wait_closed()
+    connection_pool.remove_user_from_pool(writer)
 
 
 async def main():
@@ -75,6 +100,7 @@ async def main():
 
     async with server:
         await server.serve_forever()
+
 
 connection_pool = ConnectionPool()
 asyncio.run(main())
