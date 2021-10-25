@@ -1,4 +1,5 @@
 import asyncio
+from textwrap import dedent
 
 
 class ConnectionPool:
@@ -6,10 +7,13 @@ class ConnectionPool:
         self.connection_pool = set()
 
     def send_welcome_message(self, writer):
-        """
-        Sends a welcome messages to a newly connected client
-        """
-        pass
+        message = dedent(f"""===(Welcome {writer.nickname}!
+        There are {len(self.connection_pool) -1} user(s)
+        here beside you
+        ===
+        """)
+
+        writer.write(f"{message}\n".encode())
 
     def broadcat(self, write, message):
         """
@@ -55,12 +59,13 @@ class ConnectionPool:
 
 
 async def handle_connection(reader, writer):
-    writer.write("Hello new user, type something...\n".encode())
+    writer.write(">Chose your nickname:".encode())
 
-    data = await reader.readuntil(b"\n")
+    response = await reader.readuntil(b"\n")
+    writer.nickname = response.decode().strip()
 
-    writer.write("You sent: ".encode() + data)
-    await writer.drain()
+    connection_pool.add_new_user_to_pool(writer)
+    connection_pool.send_welcome_message(writer)
 
     # close connection and clean up
     writer.close()
