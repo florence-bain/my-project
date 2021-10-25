@@ -1,6 +1,59 @@
 import asyncio
 
 
+class ConnectionPool:
+    def __init__(self):
+        self.connection_pool = set()
+
+    def send_welcome_message(self, writer):
+        """
+        Sends a welcome messages to a newly connected client
+        """
+        pass
+
+    def broadcat(self, write, message):
+        """
+        Broadcasts a general message to the entire pool
+        """
+        pass
+
+    def broadcast_user_join(self, writer):
+        """
+        Calls the broadcast amthoad with a "user joining" message
+        """
+        pass
+
+    def broadcast_user_quit(self, writer):
+        """
+        Calls the broadcast method with a "user quitting" message
+        """
+        pass
+
+    def broadcast_new_message(self, writer, message):
+        """
+        Calls the broadcast method with a users chat message
+        """
+        pass
+
+    def list_users(self, writer):
+        """
+        Lists all the users in the pool
+        """
+        pass
+
+    def add_new_user_to_pool(self, writer):
+        """
+        Adds a new user to the existing pool
+        """
+        self.connection_pool.add(writer)
+
+    def remove_user_from_pool(self, writer):
+        """
+        Removes an existing user from the pool
+        """
+        self.connection_pool.remove(writer)
+
+
 async def handle_connection(reader, writer):
     writer.write("Hello new user, type something...\n".encode())
 
@@ -20,4 +73,5 @@ async def main():
     async with server:
         await server.serve_forever()
 
+connection_pool = ConnectionPool()
 asyncio.run(main())
