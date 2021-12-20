@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "funcoin"
+version = "0.1.0"
+description = ""
+authors = ["Florence Bain <florence_bain@outlook.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+PyNaCl = "^1.4.0"
+structlog = "^21.5.0"
+colorama = "^0.4.4"
+marshmallow = "^3.14.1"
+marshmallow-oneofschema = "^3.0.1"
+aiohttp = "^3.8.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
